@@ -58,7 +58,8 @@ def _(mo):
 def _(mo, ppp_raw_df):
     ppp_col_dropdown = mo.ui.dropdown(
         list(filter(lambda col: col[0].isdigit(), ppp_raw_df.columns)),
-        searchable=True
+        value=list(filter(lambda col: "9260000" in col, ppp_raw_df.columns))[0],
+        searchable=True,
     )
     mo.vstack([mo.md("選擇 ICP PPP 項目（建議：`9260000`）"), ppp_col_dropdown])
     return (ppp_col_dropdown,)
@@ -245,6 +246,21 @@ def _(countries, one_df, pl, ppp_col_clean):
         pl.col("region"), 
         pl.col("bmac_index_deviation")
     ).sort(pl.col("bmac_index_deviation").abs(), descending=True)
+    return (deviation_df,)
+
+
+@app.cell
+def _(deviation_df, pl):
+    group = deviation_df.select(pl.col("region"), pl.col("bmac_index_deviation").alias("mean_deviation")).group_by("region").mean()
+    group.sort(pl.col("mean_deviation"), descending=True)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 2. 探討以米飯作為亞洲地區購買力的比較媒介之準確性
+    """)
     return
 
 
