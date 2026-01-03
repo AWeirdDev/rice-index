@@ -72,7 +72,7 @@ def _(col, food_prices, rice_types):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### 有什麼單位
