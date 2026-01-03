@@ -46,6 +46,7 @@ def _(col, food_prices, mo):
     all_rice_types = food_prices.select(col("commodity")).filter(col("commodity").str.contains("Rice")).unique()
     rice_types = mo.ui.multiselect(
         list(all_rice_types)[0],
+        value=list(all_rice_types)[0],
         label="選擇你想計算的米種: "
     )
     rice_types
@@ -68,7 +69,6 @@ def _(col, food_prices, rice_types):
     ).filter(
         col("commodity").is_in(rice_types.value)
     ).unique().group_by(col("countryiso3")).all()
-
     return
 
 
@@ -82,7 +82,9 @@ def _(mo):
 
 @app.cell
 def _(col, food_prices, rice_types):
-    food_prices.filter(col("commodity").is_in(rice_types.value)).select(col("unit")).unique()
+    food_prices.filter(
+        col("commodity").is_in(rice_types.value)
+    ).select(col("unit")).unique()
     return
 
 
