@@ -204,8 +204,15 @@ def _(mo):
 
 @app.cell
 def _(pl):
-    countries = pl.read_csv("./data/countries.csv")
-    countries.head()
+    raw_countries = pl.read_csv("./data/continents2.csv")
+    countries = (
+        raw_countries.remove(pl.col("alpha-3") == "ATA")
+            .select(
+                pl.col("alpha-3").alias("code"), 
+                pl.col("sub-region").fill_null(pl.col("region")).alias("region_name")
+            )
+    )
+    countries
     return (countries,)
 
 
@@ -219,39 +226,16 @@ def _(mo):
 
 @app.cell
 def _(countries, one_df, pl, ppp_col_clean):
-    deviation_df = (
-        one_df
-            .join(countries, left_on="country_code", right_on="Country Code")
-            .select(
-                pl.exclude(
-                    list(
-                        filter(
-                            lambda col: col != "Country Code" and col != "Region", 
-                            countries.columns
-                        )
-                    )
-                )
-            )
-            .rename({"Region": "region"})
-            .with_columns(
-                ((pl.col("bmac_ppp") - pl.col(ppp_col_clean)) / pl.col(ppp_col_clean)).alias("bmac_index_deviation")
-            )
+    deviation_df = one_df.join(countries, left_on="country_code", right_on="code").with_columns(
+        ((pl.col("bmac_ppp") - pl.col(ppp_col_clean)) / pl.col(ppp_col_clean)).alias("bmac_index_deviation")
     )
-
-    # display
-    deviation_df.select(
-        pl.col("name"), 
-        pl.col("local_price"), 
-        pl.col(ppp_col_clean), 
-        pl.col("region"), 
-        pl.col("bmac_index_deviation")
-    ).sort(pl.col("bmac_index_deviation").abs(), descending=True)
+    deviation_df
     return (deviation_df,)
 
 
 @app.cell
 def _(deviation_df, pl):
-    group = deviation_df.select(pl.col("region"), pl.col("bmac_index_deviation").alias("mean_deviation")).group_by("region").mean()
+    group = deviation_df.select(pl.col("region_name"), pl.col("bmac_index_deviation").alias("mean_deviation").abs()).group_by("region_name").mean()
     group.sort(pl.col("mean_deviation"), descending=True)
     return
 
