@@ -7,7 +7,6 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import os
-
     import marimo as mo
 
     import json
@@ -43,7 +42,7 @@ def _(mo):
 
 @app.cell
 def _(col, food_prices, mo):
-    all_rice_types = food_prices.select(col("commodity")).filter(col("commodity").str.contains("Rice")).unique()
+    all_rice_types = food_prices.select(col("commodity")).filter(col("commodity").str.contains("Rice")).unique().sort(col("commodity"))
     rice_types = mo.ui.multiselect(
         list(all_rice_types)[0],
         value=list(all_rice_types)[0],
@@ -64,11 +63,12 @@ def _(mo):
 @app.cell
 def _(col, food_prices, rice_types):
     food_prices.select(
-        col("commodity"),
-        col("countryiso3")
+        "commodity",
+        "countryiso3"
     ).filter(
         col("commodity").is_in(rice_types.value)
-    ).unique().group_by(col("countryiso3")).all()
+    ).unique(maintain_order=True)\
+        .group_by(col("countryiso3")).all().sort(col("countryiso3"))
     return
 
 
@@ -84,7 +84,7 @@ def _(mo):
 def _(col, food_prices, rice_types):
     food_prices.filter(
         col("commodity").is_in(rice_types.value)
-    ).select(col("unit")).unique()
+    ).select(col("unit")).unique().sort(by="unit")
     return
 
 
