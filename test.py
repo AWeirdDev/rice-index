@@ -27,11 +27,23 @@ def _(mo):
 
 
 @app.cell
+def _(pl):
+    pl.read_csv("data/wfp_food_prices_global_2021.csv")
+    return
+
+
+@app.cell
 def _(col, pl):
     food_prices = pl.read_csv("data/wfp_food_prices_global_2021.csv")
     food_prices = food_prices.remove(col("date") == "#date")
     food_prices
     return (food_prices,)
+
+
+@app.cell
+def _(col, food_prices):
+    food_prices.select(col("countryiso3")).unique()
+    return
 
 
 @app.cell(hide_code=True)
