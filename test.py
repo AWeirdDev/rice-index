@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.18.4"
+__generated_with = "0.20.4"
 app = marimo.App(width="medium", app_title="Test data", css_file="")
 
 
@@ -13,6 +13,7 @@ def _():
     import marimo as mo
     import polars as pl
     from polars import col
+
     return col, mo, pl
 
 
@@ -29,6 +30,7 @@ def _(mo):
 def _(col, pl):
     food_prices = pl.read_csv("data/wfp_food_prices_global_2021.csv")
     food_prices = food_prices.remove(col("date") == "#date")
+    food_prices
     return (food_prices,)
 
 
@@ -88,6 +90,26 @@ def _(col, food_prices, rice_types):
     food_prices.filter(col("commodity").is_in(rice_types.value)).select(
         col("unit")
     ).unique().sort(by="unit")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    由於「Cuartilla」是體積而非重量單位，所以我們必須將有「Cuartilla」單位的資料剔除。
+    """)
+    return
+
+
+@app.cell
+def _(col, food_prices, rice_types):
+    rice_prices = food_prices.filter(col("commodity").is_in(rice_types.value)).filter(col("unit") != "Cuartilla").select(col("countryiso3"), col("market"), col("latitude"), col("longitude"), col("unit"), col("currency"), col("price"))
+    rice_prices
+    return
+
+
+@app.cell
+def _():
     return
 
 
