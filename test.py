@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.18.4"
-app = marimo.App(width="medium")
+app = marimo.App(width="medium", app_title="Test data", css_file="")
 
 
 @app.cell
@@ -13,7 +13,6 @@ def _():
     import marimo as mo
     import polars as pl
     from polars import col
-
     return col, mo, pl
 
 
