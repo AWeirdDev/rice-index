@@ -6,13 +6,14 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    import os
-    import marimo as mo
-
     import json
+    import os
+    from datetime import datetime as dt
+
+    import marimo as mo
     import polars as pl
     from polars import col
-    from datetime import datetime as dt
+
     return col, mo, pl
 
 
@@ -28,7 +29,7 @@ def _(mo):
 @app.cell
 def _(col, pl):
     food_prices = pl.read_csv("data/wfp_food_prices_global_2021.csv")
-    food_prices = food_prices.remove(col("date")=="#date")
+    food_prices = food_prices.remove(col("date") == "#date")
     return (food_prices,)
 
 
@@ -42,11 +43,16 @@ def _(mo):
 
 @app.cell
 def _(col, food_prices, mo):
-    all_rice_types = food_prices.select(col("commodity")).filter(col("commodity").str.contains("Rice")).unique().sort(col("commodity"))
+    all_rice_types = (
+        food_prices.select(col("commodity"))
+        .filter(col("commodity").str.contains("Rice"))
+        .unique()
+        .sort(col("commodity"))
+    )
     rice_types = mo.ui.multiselect(
         list(all_rice_types)[0],
         value=list(all_rice_types)[0],
-        label="選擇你想計算的米種: "
+        label="選擇你想計算的米種: ",
     )
     rice_types
     return (rice_types,)
@@ -62,13 +68,11 @@ def _(mo):
 
 @app.cell
 def _(col, food_prices, rice_types):
-    food_prices.select(
-        "commodity",
-        "countryiso3"
-    ).filter(
+    food_prices.select("commodity", "countryiso3").filter(
         col("commodity").is_in(rice_types.value)
-    ).unique(maintain_order=True)\
-        .group_by(col("countryiso3")).all().sort(col("countryiso3"))
+    ).unique(maintain_order=True).group_by(col("countryiso3")).all().sort(
+        col("countryiso3")
+    )
     return
 
 
@@ -82,12 +86,11 @@ def _(mo):
 
 @app.cell
 def _(col, food_prices, rice_types):
-    food_prices.filter(
-        col("commodity").is_in(rice_types.value)
-    ).select(col("unit")).unique().sort(by="unit")
+    food_prices.filter(col("commodity").is_in(rice_types.value)).select(
+        col("unit")
+    ).unique().sort(by="unit")
     return
 
 
 if __name__ == "__main__":
     app.run()
->>>>>>> 8895604ffc4531aa4607effc1602194829e8a857
